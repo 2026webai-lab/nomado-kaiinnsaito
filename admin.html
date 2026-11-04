@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Nomad Community 管理</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;align-items:center}.bar select{flex:1;min-width:0}
+.btn.s{display:inline-block;width:auto;padding:6px 14px;margin:6px 6px 0 0}.btn.on{background:var(--ac)}
+.row{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:8px 0;cursor:pointer}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px}.stat b{display:block;font-size:1.5rem}
+dialog{border:0;border-radius:12px;width:92%;max-width:560px;padding:20px;color:var(--ink)}dialog::backdrop{background:rgba(18,22,43,.5)}
+.msg{white-space:pre-wrap;background:#f6f7fb;border-radius:8px;padding:10px;font-size:.88rem;margin:6px 0}
+</style></head><body>
+<div class="w"><h1>Nomad Community 管理</h1>
+<form id="lf" class="panel">
+<label>メールアドレス<input id="em" type="email" required autocomplete="username"></label>
+<label>パスワード<input id="pw" type="password" required autocomplete="current-password"></label>
+<button class="btn" style="margin-top:16px">ログイン</button><p id="lm" class="err" role="status"></p></form>
+<div id="mfa" class="panel" hidden></div>
+<div id="app" hidden>
+<p id="who" class="mut"></p>
+<div class="bar"><button class="btn sub s on" data-t="dash">ダッシュボード</button><button class="btn sub s" data-t="cases">案件</button><button class="btn sub s" data-t="new">案件の登録</button><button class="btn sub s" data-t="log" id="logbtn" hidden>操作ログ</button></div>
+<section id="t-dash"><div id="stats" class="grid"></div><div id="alerts"></div></section>
+<section id="t-cases" hidden><div class="bar"><select id="sf" aria-label="状態"><option value="">すべて</option></select><button id="csv" class="btn sub s">CSV</button></div><p id="cnt" class="mut"></p><div id="list"></div></section>
+<section id="t-new" hidden><div class="panel"><p>申請メッセージを受信したら、ここで案件を登録し、発行された案件コードを、申請者にトークで伝えます。</p>
+<label>受信した経路<select id="nch"><option value="whatsapp">WhatsApp</option><option value="line">LINE</option></select></label>
+<label>申請者の言語<select id="nlg"><option value="ja">日本語</option><option value="en">English</option></select></label>
+<button id="nb" class="btn" style="margin-top:14px">案件を登録してコードを発行</button><div id="nr"></div></div></section>
+<section id="t-log" hidden><div class="bar"><button id="lcsv" class="btn sub s">CSV</button></div><div id="logs"></div></section>
+<p><button id="out" class="btn sub">ログアウト</button></p></div>
+<dialog id="dlg"><div id="dt"></div><div id="da"></div><button id="cl" type="button" class="btn sub" style="margin-top:10px">閉じる</button></dialog></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.109.0"></script>
+<script src="config.js"></script><script src="admin-auth.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LBL={new:'新着',reviewing:'審査中',approved:'承認',rejected:'却下',invited:'招待済み',joined:'参加中',left:'退会',deleted:'削除済み'};
+const NEXT={new:['reviewing'],reviewing:['approved','rejected'],approved:['invited'],invited:['joined','approved'],joined:['left'],left:['deleted'],rejected:['deleted']};
+const d10=d=>d?String(d).slice(0,10):'—';
+let role=null,cases=[],reasons=[],cfg={},shown=[];
+const cfgOk=()=>/^https:\/\/[a-z0-9]+\.supabase\.co$/.test(SB_URL)&&/^[\x21-\x7e]+$/.test(SB_KEY);
+$('sf').innerHTML+=Object.keys(LBL).map(k=>`<option value="${k}">${LBL[k]}</option>`).join('');
+
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  $('lf').hidden=!!session;$('app').hidden=true;$('mfa').hidden=true;
+  if(!session||!(await mfaOk($('mfa'))))return;
+  const {data:r}=await sb.rpc('my_role');role=r;
+  if(!role){$('mfa').hidden=false;$('mfa').textContent='管理者として登録されていません。';return}
+  $('app').hidden=false;$('who').textContent='権限：'+({owner:'Owner',moderator:'Moderator',viewer:'Viewer'}[role]);
+  $('logbtn').hidden=role!=='owner';$('nb').disabled=role==='viewer';
+  loadAll();
+}
+$('lf').onsubmit=async e=>{
+  e.preventDefault();
+  if(!cfgOk()){$('lm').textContent='config.js が未設定です。Project URL と Publishable key を入力してください。';return}
+  try{
+    const {error}=await sb.auth.signInWithPassword({email:$('em').value,password:$('pw').value});
+    $('lm').textContent=error?'ログインできませんでした。メールとパスワードを確認してください。':'';
+    if(!error){$('pw').value='';init()}
+  }catch(err){$('lm').textContent='接続できませんでした。config.js の設定を確認してください。'}
+};
+$('out').onclick=async()=>{await sb.auth.signOut();role=null;cases=[];init()};
+document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('on',x===b));
+  ['dash','cases','new','log'].forEach(t=>$('t-'+t).hidden=t!==b.dataset.t);
+  if(b.dataset.t==='log')loadLogs();
+});
+
+async function loadAll(){
+  const [c,r,s]=await Promise.all([sb.from('cases').select('*').order('received_at',{ascending:false}),sb.from('reason_codes').select('*').order('code'),sb.from('settings').select('*')]);
+  cases=c.data||[];reasons=r.data||[];cfg=Object.fromEntries((s.data||[]).map(x=>[x.key,x.value]));
+  drawDash();drawCases();
+}
+function drawDash(){
+  const n=k=>cases.filter(c=>c.status===k).length,now=Date.now(),day=864e5;
+  $('stats').innerHTML=[['new','新着'],['reviewing','審査中'],['approved','承認'],['rejected','却下'],['invited','招待済み'],['joined','参加中']].map(([k,l])=>`<div class="stat">${l}<b>${n(k)}</b></div>`).join('');
+  const over=cases.filter(c=>['new','reviewing'].includes(c.status)&&c.due_at&&new Date(c.due_at)<now);
+  const purge=cases.filter(c=>(c.status==='rejected'&&c.decided_at&&new Date(c.decided_at).getTime()+(cfg.purge_rejected_days||30)*day<now)||(c.status==='left'&&c.left_at&&new Date(c.left_at).getTime()+(cfg.purge_left_days||30)*day<now));
+  $('alerts').innerHTML=(over.length?`<p class="err">審査期限を過ぎた案件：${over.map(c=>esc(c.code)).join('、')}</p>`:'')+(purge.length?`<p class="err">削除期限を過ぎた案件：${purge.map(c=>esc(c.code)).join('、')}（トーク・名簿・バックアップを削除して、「削除済み」に）</p>`:'')||'<p class="mut">期限を過ぎた案件はありません。</p>';
+}
+function drawCases(){
+  const s=$('sf').value;shown=cases.filter(c=>!s||c.status===s);
+  $('cnt').textContent=shown.length+'件（全'+cases.length+'件）';
+  $('list').innerHTML=shown.map(c=>`<div class="row" data-c="${esc(c.code)}"><strong>${esc(c.code)}</strong> <span class="tag">${LBL[c.status]}</span><br><small>${c.channel==='line'?'LINE':'WhatsApp'}／${c.lang==='en'?'English':'日本語'}／受付 ${d10(c.received_at)}／期限 ${d10(c.due_at)}${c.reason_code?'／理由 '+esc(c.reason_code):''}</small></div>`).join('')||'<p class="mut">該当する案件はありません。</p>';
+}
+$('sf').onchange=drawCases;
+$('list').onclick=e=>{const r=e.target.closest('.row');if(r)openCase(r.dataset.c)};
+
+function tpl(kind,c){
+  const ja=c.lang!=='en',rc=reasons.find(x=>x.code===c.reason_code)||{};
+  const T={
+    ack:ja?`申請を受け付けました。案件コードは ${c.code} です。${cfg.review_days||7}日以内を目安にご連絡します。承認をお約束するものではありません。`:`We received your application. Your case code is ${c.code}. We will reply within about ${cfg.review_days||7} days. Approval is not guaranteed.`,
+    approved:ja?`審査の結果、参加を承認しました。参加案内を、個別にお送りします。（案件コード：${c.code}）`:`Your application has been approved. We will send your invitation separately. (Case code: ${c.code})`,
+    rejected:ja?`審査の結果、今回は参加をお受けできませんでした。理由：${rc.name_ja||''}。${rc.can_reapply?rc.reapply_days+'日後に再申請できます。':'再申請はお受けできません。'}（案件コード：${c.code}）`:`After review, we are unable to accept your application this time. Reason: ${rc.name_en||''}. ${rc.can_reapply?'You may reapply after '+rc.reapply_days+' days.':'Reapplication is not possible.'} (Case code: ${c.code})`,
+    invite:ja?`参加案内です。次のリンクから参加してください（有効期限：${cfg.invite_days||7}日）。リンクは、他の人に共有しないでください。\n[ここに招待リンクを貼る]`:`Here is your invitation. Please join using the link below (valid for ${cfg.invite_days||7} days). Do not share this link.\n[paste the invitation link here]`};
+  return T[kind];
+}
+function openCase(code){
+  const c=cases.find(x=>x.code===code);if(!c)return;
+  $('dt').innerHTML=`<h2>${esc(c.code)} <span class="tag">${LBL[c.status]}</span></h2><p><small>${c.channel==='line'?'LINE':'WhatsApp'}／受付 ${d10(c.received_at)}／期限 ${d10(c.due_at)}／判断 ${d10(c.decided_at)}／招待 ${d10(c.invited_at)}／参加 ${d10(c.joined_at)}／退会 ${d10(c.left_at)}</small></p>`;
+  let h='';
+  if(role==='owner'||role==='moderator'){
+    if(c.status==='reviewing')h+=`<label>却下する場合の理由コード<select id="rs">${reasons.map(r=>`<option value="${esc(r.code)}">${esc(r.code)} ${esc(r.name_ja)}</option>`).join('')}</select></label>`;
+    h+=(NEXT[c.status]||[]).filter(t=>t!=='deleted'||role==='owner').map(t=>{
+      const l=c.status==='invited'&&t==='approved'?'招待を失効（承認に戻す）':{reviewing:'審査を開始',approved:'承認する',rejected:'却下する',invited:'招待済みにする',joined:'参加を記録',left:'退会を記録',deleted:'削除済みにする'}[t];
+      return `<button class="btn sub s" data-to="${t}" data-code="${esc(c.code)}">${l}</button>`}).join('');
+  }
+  const kinds=[['ack','受付の通知'],['approved','承認の通知'],['rejected','却下の通知'],['invite','招待の案内']];
+  h+=`<hr><label>定型文<select id="tk">${kinds.map(k=>`<option value="${k[0]}">${k[1]}</option>`).join('')}</select></label><div class="msg" id="tm"></div><button class="btn sub s" id="tc" type="button">定型文をコピー</button>`;
+  $('da').innerHTML=h;
+  const show=()=>{$('tm').textContent=tpl($('tk').value,c)};$('tk').onchange=show;show();
+  $('tc').onclick=()=>navigator.clipboard&&navigator.clipboard.writeText($('tm').textContent);
+  $('dlg').showModal();
+}
+$('cl').onclick=()=>$('dlg').close();
+$('da').onclick=async e=>{
+  const b=e.target.closest('[data-to]');if(!b)return;
+  const to=b.dataset.to,code=b.dataset.code,reason=to==='rejected'?$('rs').value:null;
+  if(!confirm(`${code} を「${LBL[to]||'招待の失効'}」にします。よろしいですか？`))return;
+  if(['approved','rejected','deleted'].includes(to)&&!confirm('重要な操作です。本当に実行しますか？'))return;
+  const {error}=await sb.rpc('set_case_status',{p_code:code,p_to:to,p_reason:reason});
+  if(error){alert('実行できませんでした：'+error.message);return}
+  $('dlg').close();loadAll();
+};
+$('nb').onclick=async()=>{
+  const {data,error}=await sb.rpc('create_case',{p_channel:$('nch').value,p_lang:$('nlg').value});
+  if(error){$('nr').innerHTML='<p class="err">登録できませんでした：'+esc(error.message)+'</p>';return}
+  const t=tpl('ack',{code:data,lang:$('nlg').value});
+  $('nr').innerHTML=`<p>案件コード：<strong>${esc(data)}</strong></p><div class="msg">${esc(t)}</div><button class="btn sub s" id="nc" type="button">受付の定型文をコピー</button>`;
+  $('nc').onclick=()=>navigator.clipboard&&navigator.clipboard.writeText(t);loadAll();
+};
+$('csv').onclick=()=>downloadCsv('cases_'+new Date().toISOString().slice(0,10)+'.csv',['案件コード','状態','経路','言語','受付日','審査期限','判断日','理由コード','招待日','参加日','退会日','削除日'],shown.map(c=>[c.code,LBL[c.status],c.channel,c.lang,d10(c.received_at),d10(c.due_at),d10(c.decided_at),c.reason_code,d10(c.invited_at),d10(c.joined_at),d10(c.left_at),d10(c.deleted_at)]));
+let logs=[];
+async function loadLogs(){
+  const {data}=await sb.from('audit_logs').select('*').order('at',{ascending:false}).limit(300);logs=data||[];
+  $('logs').innerHTML=logs.map(l=>`<div class="row" style="cursor:default"><small>${esc(l.at.slice(0,16).replace('T',' '))}／${esc(l.role)}／${esc(l.action)}／${esc(l.case_code)}／${esc(l.detail)}</small></div>`).join('')||'<p class="mut">ログはありません。</p>';
+}
+$('lcsv').onclick=()=>downloadCsv('audit_'+new Date().toISOString().slice(0,10)+'.csv',['日時','権限','操作','案件コード','内容'],logs.map(l=>[l.at,l.role,l.action,l.case_code,l.detail]));
+init();
+</script></body></html>
