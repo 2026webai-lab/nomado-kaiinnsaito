@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>申請｜Nomad Community</title><link rel="stylesheet" href="style.css"></head><body>
+<main class="w"><h1><span lang="ja">参加を申請する</span><span lang="en">Apply to join</span></h1>
+<div class="panel"><p lang="ja">入力内容は、このサイトには送信・保存されません。WhatsApp または LINE に、メッセージとして作成されます。</p><p lang="en">Your input is not sent to or stored on this website. It is prepared as a message in WhatsApp or LINE.</p>
+<form id="f">
+<label><span lang="ja">ニックネーム</span><span lang="en">Nickname</span><input name="nick" required maxlength="40"></label>
+<label><span lang="ja">居住国または滞在国</span><span lang="en">Country of residence or stay</span><input name="country" required maxlength="60"></label>
+<label><span lang="ja">参加目的</span><span lang="en">Purpose of joining</span><textarea name="purpose" required rows="3" maxlength="300"></textarea></label>
+<label><span lang="ja">連絡方法</span><span lang="en">Contact channel</span><select name="channel"><option value="whatsapp">WhatsApp</option><option value="line">LINE</option></select></label>
+<label><span lang="ja">メッセージの言語</span><span lang="en">Message language</span><select name="lang"><option value="ja">日本語</option><option value="en">English</option></select></label>
+<label style="display:flex;gap:8px;font-weight:400"><input type="checkbox" required style="width:auto;margin-top:6px"><span><span lang="ja"><a href="terms.html">利用規約</a>と<a href="privacy.html">プライバシーポリシー</a>に同意します</span><span lang="en">I agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a></span></span></label>
+<button class="btn" style="margin-top:16px"><span lang="ja">メッセージを作成して開く</span><span lang="en">Prepare message and open</span></button></form></div></main>
+<script src="config.js"></script><script src="site.js"></script><script>
+const f=document.getElementById('f');
+f.lang.value=document.documentElement.lang==='ja'?'ja':'en';
+f.addEventListener('submit',e=>{
+  e.preventDefault();
+  const d=new FormData(f),L=d.get('lang'),ch=d.get('channel');
+  const c=s=>String(s||'').replace(/\s+/g,' ').trim().slice(0,300);
+  const nick=c(d.get('nick')),ctry=c(d.get('country')),pur=c(d.get('purpose'));
+  const t=L==='ja'
+    ?'【Nomad Community 参加申請】\nニックネーム：'+nick+'\n居住国／滞在国：'+ctry+'\n参加目的：'+pur+'\n同意：利用規約とプライバシーポリシーに同意します'
+    :'[Nomad Community Application]\nNickname: '+nick+'\nCountry (residence/stay): '+ctry+'\nPurpose: '+pur+'\nConsent: I agree to the Terms and Privacy Policy';
+  const url=ch==='line'?'https://line.me/R/oaMessage/'+encodeURIComponent(NC.lineId)+'/?'+encodeURIComponent(t):NC.waLink+'?text='+encodeURIComponent(t);
+  if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>{});
+  try{sessionStorage.setItem('nc_msg',t)}catch(x){}
+  window.open(url,'_blank','noopener');
+  location.href='done.html';
+});
+</script></body></html>

@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>申請の送信｜Nomad Community</title><link rel="stylesheet" href="style.css"></head><body>
+<main class="w"><h1><span lang="ja">メッセージを送信してください</span><span lang="en">Please send the message</span></h1>
+<p lang="ja">開いたアプリで、作成されたメッセージを送信してください。メッセージが入力されていない場合は、下の文を貼り付けて送信してください。</p><p lang="en">In the app that opened, send the prepared message. If the message box is empty, paste the text below and send it.</p>
+<div class="msg" id="m"></div><p><button class="btn sub" id="c" type="button"><span lang="ja">メッセージをコピー</span><span lang="en">Copy message</span></button></p>
+<section><ul class="ck"><li><span lang="ja">運営が確認し、7日以内を目安に、案件コードと結果をご連絡します</span><span lang="en">We will confirm and reply with your case code and the result, usually within 7 days</span></li><li><span lang="ja">現在は審査中の状態です。承認をお約束するものではありません</span><span lang="en">Your application is under review. Approval is not guaranteed</span></li></ul></section>
+<p><a class="btn" href="index.html"><span lang="ja">トップへ戻る</span><span lang="en">Back to home</span></a></p></main>
+<script src="config.js"></script><script src="site.js"></script><script>
+const m=document.getElementById('m');let t='';try{t=sessionStorage.getItem('nc_msg')||''}catch(x){}
+m.textContent=t;
+document.getElementById('c').onclick=()=>{if(navigator.clipboard&&t)navigator.clipboard.writeText(t)};
+</script></body></html>
