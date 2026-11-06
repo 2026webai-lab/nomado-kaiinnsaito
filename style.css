@@ -1,34 +1,46 @@
-:root{--ink:#12162b;--mut:#5d647a;--bg:#f6f7fb;--ac:#43d9c1;--line:#dfe3ee;--err:#c0213f}
+:root{--ink:#15302b;--sand:#f6f1e7;--mut:#5c6b66;--ac:#c4561f;--line:#ddd3c0;--card:#fffdf8}
 *{box-sizing:border-box}
-body{word-break:auto-phrase;text-wrap:pretty;margin:0;font:16px/1.8 "Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;color:var(--ink);background:var(--bg)}
-.w{max-width:600px;margin:0 auto;padding:0 20px}
-h1{font-size:1.9rem;line-height:1.35;margin:.5em 0;letter-spacing:.02em}
-h2{font-size:1.15rem;margin:0 0 .6em}
-section{padding:26px 0;border-top:1px solid var(--line)}
-.hero{border:0;padding:40px 0 28px}
-.tag{display:inline-block;background:var(--ink);color:var(--ac);border-radius:4px;padding:1px 10px;font-size:.8rem;font-weight:700}
-.slots{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin:20px 0 6px}
-.slots i{height:22px;border-radius:3px;background:#e3e6f1}
-.slots i.on{background:var(--ac)}
-.btn{display:block;width:100%;text-align:center;border:0;border-radius:99px;padding:14px;font:inherit;font-weight:700;color:var(--ink);background:var(--ac);text-decoration:none;cursor:pointer}
-.btn.line{background:#06c755;color:#fff}
-.btn.sub{background:#fff;color:var(--ink);border:1px solid var(--line)}
-.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-.steps{list-style:none;padding:0;margin:0}
-.steps li{display:flex;gap:14px;padding:10px 0}
-.steps b{flex:none;width:26px;height:26px;border-radius:4px;background:var(--ink);color:var(--ac);text-align:center;line-height:26px}
-details{border-bottom:1px solid var(--line);padding:10px 0}
-summary{cursor:pointer;font-weight:700}
-.panel{background:#fff;border:1px solid var(--line);border-radius:8px;padding:18px}
-label{display:block;font-weight:700;font-size:.92rem;margin:14px 0 0}
-label input,label select,label textarea{margin-top:4px;font-weight:400}
-input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:6px;font:inherit;background:#fff;color:var(--ink)}
-small,.mut{color:var(--mut);font-size:.84rem}
-.err{color:var(--err);font-weight:700}
-footer{padding:28px 0 40px;text-align:center;color:var(--mut);font-size:.85rem}
+body{margin:0;background:var(--sand);color:var(--ink);font:16px/1.9 "Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;word-break:auto-phrase;text-wrap:pretty}
+h1,h2,h3,.logo,.tagline{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;line-height:1.5}
 a{color:inherit}
-html[lang=ja] [lang=en],html[lang=en] [lang=ja]{display:none!important}
-.nav{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;max-width:600px;margin:0 auto;padding:14px 20px}
-.nav nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.86rem}.nav a{text-decoration:none}.brand{font-weight:700}
-.lt{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 12px;font:inherit;font-size:.8rem;cursor:pointer}
-ul.ck{padding-left:1.2em}ul.ck li{margin:.3em 0}.msg{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:.9rem}
+.w{max-width:920px;margin:0 auto;padding:0 20px}
+.top{padding:16px 0}.bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-weight:700;font-size:1.15rem;text-decoration:none;letter-spacing:.02em}
+nav{display:flex;align-items:center;gap:16px;font-size:.9rem}nav a{text-decoration:none}
+.btn{display:inline-block;padding:13px 26px;border-radius:99px;background:var(--ac);color:#fff;font:700 1rem/1.4 inherit;text-decoration:none;border:0;cursor:pointer}
+.btn.sm{padding:7px 16px;font-size:.85rem}
+.btn.ghost{background:transparent;border:1px solid currentColor;color:inherit}
+.btn:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #f2b66d;outline-offset:2px}
+.home .top{position:absolute;top:0;left:0;right:0;z-index:5;color:#fff}
+.hero{position:relative;min-height:92svh;display:flex;align-items:flex-end;color:#fff;background:#10201d}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,25,22,.45),rgba(10,25,22,.05) 38%,rgba(10,25,22,.78))}
+.hero .w{position:relative;z-index:2;padding-bottom:52px}
+.badge{display:inline-block;border:1px solid rgba(255,255,255,.7);border-radius:99px;padding:2px 14px;font-size:.82rem;letter-spacing:.08em}
+.tagline{font-style:italic;font-size:1.1rem;margin:14px 0 4px;opacity:.95}
+.hero h1{font-size:clamp(2rem,6.4vw,3.5rem);margin:.2em 0 .4em}
+.hero p{max-width:34em;margin:0 0 22px}
+.cta{display:flex;flex-wrap:wrap;gap:12px}
+section{padding:56px 0}
+.pg{padding:28px 0 8px}.pg h1{font-size:clamp(1.7rem,5vw,2.4rem);margin:.2em 0}
+h2{font-size:1.5rem;margin:0 0 .6em}h3{font-size:1.1rem;margin:1.2em 0 .3em}
+.lead{color:var(--mut);max-width:38em}
+.grid3{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+figure{margin:0}figure img,.wide{width:100%;height:auto;display:block;border-radius:10px;aspect-ratio:4/3;object-fit:cover}
+.wide{aspect-ratio:21/9;margin:0 0 22px}
+figcaption{padding-top:10px}figcaption b{display:block;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:1.1rem}
+figcaption span{color:var(--mut);font-size:.93rem}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s;display:grid;grid-template-columns:48px 1fr;gap:12px;padding:16px 0;border-top:1px solid var(--line)}
+.steps li:before{content:counter(s,decimal-leading-zero);font:1.5rem "Hiragino Mincho ProN","Yu Mincho",serif;color:var(--ac)}
+.steps b{display:block}.steps span{color:var(--mut);font-size:.93rem}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:16px 0}
+.alt{background:#efe7d6}
+ul.l{padding-left:1.2em}ul.l li{margin:.3em 0}
+label{display:block;font-weight:700;margin:16px 0 4px}
+input[type=text],textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;color:var(--ink)}
+.chk{display:flex;gap:10px;font-weight:400;align-items:flex-start}.chk input{margin-top:.5em}
+.err{color:#b3261e;font-weight:700}.mut{color:var(--mut);font-size:.9rem}
+footer{background:var(--ink);color:#e9e4d8;padding:36px 0;font-size:.9rem}footer a{color:#fff}footer .logo{color:#fff;margin:0}
+footer p{margin:.4em 0}
+@media(max-width:560px){nav a:not(.btn){display:none}}
