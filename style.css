@@ -44,3 +44,44 @@ input[type=text],textarea{width:100%;padding:12px;border:1px solid var(--line);b
 footer{background:var(--ink);color:#e9e4d8;padding:36px 0;font-size:.9rem}footer a{color:#fff}footer .logo{color:#fff;margin:0}
 footer p{margin:.4em 0}
 @media(max-width:560px){nav a:not(.btn){display:none}}
+
+/* ---- レイアウト強化 ---- */
+:root{--r:14px}
+.top{position:absolute;top:0;left:0;right:0;z-index:6;color:#fff}.top .logo{color:#fff}
+.phead{position:relative;color:#fff;padding:132px 0 56px;background:#15302b var(--bg,none) center/cover}
+.phead:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,25,22,.55),rgba(10,25,22,.72))}
+.phead .w{position:relative}.phead h1{font-size:clamp(1.9rem,5.6vw,2.8rem);margin:.15em 0 .3em}.phead p.l2{max-width:36em;margin:0;opacity:.92}
+.eyebrow{font:700 .72rem/1 "Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;letter-spacing:.24em;color:var(--ac);margin:0 0 12px}
+.phead .eyebrow,.band .eyebrow{color:#f2b66d}
+.hero .tagline{margin-top:18px}
+.mosaic{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:118px;gap:10px;margin-top:26px}
+.mosaic figure{overflow:hidden;border-radius:var(--r);position:relative}.mosaic img{width:100%;height:100%;object-fit:cover;aspect-ratio:auto;border-radius:0;transition:transform .8s}
+.mosaic figure:hover img{transform:scale(1.04)}
+.m1{grid-column:1/4;grid-row:1/5}.m2{grid-column:4/7;grid-row:1/3}.m3{grid-column:4/6;grid-row:3/5}.m4{grid-column:6/7;grid-row:3/5}
+@media(max-width:640px){.mosaic{grid-template-columns:repeat(2,1fr);grid-auto-rows:130px}.m1{grid-column:1/3;grid-row:1/3}.m2{grid-column:1/3;grid-row:3/5}.m3{grid-column:1/2;grid-row:5/7}.m4{grid-column:2/3;grid-row:5/7}}
+.split{display:grid;gap:26px;align-items:center;grid-template-columns:1fr}
+@media(min-width:760px){.split{grid-template-columns:1fr 1fr;gap:56px}.split.rev .ph{order:2}}
+.ph img{width:100%;height:auto;display:block;border-radius:var(--r);aspect-ratio:4/3;object-fit:cover;box-shadow:0 22px 44px -22px rgba(21,48,43,.5)}
+.split h2{font-size:1.6rem}.split p{margin:.4em 0}
+.flow{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));counter-reset:s}
+.flow li{counter-increment:s;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 16px}
+.flow li:before{content:counter(s,decimal-leading-zero);display:block;font:1.7rem "Hiragino Mincho ProN","Yu Mincho",serif;color:var(--ac);margin-bottom:2px}
+.flow b{display:block;margin-bottom:4px}.flow span{color:var(--mut);font-size:.88rem;line-height:1.75;display:block}
+.band{position:relative;color:#fff;padding:96px 0;background:#10201d var(--bg) center/cover}
+.band:before{content:"";position:absolute;inset:0;background:rgba(10,25,22,.66)}.band .w{position:relative}
+.band h2{font-size:clamp(1.6rem,4.6vw,2.3rem)}.band p{max-width:36em}
+.ticks{display:grid;gap:10px;margin:22px 0 0;padding:0;list-style:none;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.ticks li{border:1px solid rgba(255,255,255,.4);border-radius:10px;padding:10px 14px;font-size:.93rem}.ticks li:before{content:"✓ ";color:#f2b66d;font-weight:700}
+.center{text-align:center}.center .lead{margin:0 auto 22px}
+.doc{max-width:720px}.doc h2{font-size:1.25rem;margin:2em 0 .4em;padding-top:1em;border-top:1px solid var(--line)}.doc h2:first-of-type{border:0;padding:0}
+.doc p,.doc li{font-size:.97rem}
+.sticky{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(21,48,43,.95);display:none;justify-content:center}
+.sticky .btn{width:100%;max-width:420px;text-align:center}
+@media(max-width:760px){.sticky{display:flex}body.has-sticky{padding-bottom:74px}}
+.rv{opacity:0;transform:translateY(16px);transition:opacity .8s,transform .8s}.rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.mosaic img{transition:none}}
+
+.pc-only{display:none}@media(min-width:760px){.pc-only{display:block}}
+.qr{display:grid;gap:22px;grid-template-columns:repeat(2,minmax(0,200px));justify-content:center;text-align:center;margin:14px 0}
+.qr img{width:100%;height:auto;border-radius:12px;background:#fff;padding:6px;border:1px solid var(--line)}.qr b{display:block;margin-top:8px}
+.btn.sm2{padding:9px 18px;font-size:.9rem}
